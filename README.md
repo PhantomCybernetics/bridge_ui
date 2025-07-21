@@ -25,11 +25,6 @@ cd phntm_bridge_ui
 bun install
 ```
 
-### Register a new App on the Bridge Server
-
-To Phantom Bridge, this UI represents an app, individual browser clients running web ui are considered app instances. New app needs to register with the Bridge Server server it intends to use. The following link will return a new appId/appKey pair, put these in your config.jsonc below.
-[https://register.phntm.io/app](https://register.phntm.io/app)
-
 ### Create config file
 
 Create new config file e.g. `~/phntm_bridge_ui/config.jsonc`, use [./config.example.jsonc](./config.example.jsonc) as a starting point.

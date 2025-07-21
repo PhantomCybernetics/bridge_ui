@@ -1,64 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title><%= typeof title != 'undefined' ? title+'' : 'PHNTM WebUI' %></title>
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <meta name="viewport" content="">
-    <script type="text/javascript">
-        var exports = {};
-    </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<head>
+		<meta charset="utf-8" />
+		<title><%= typeof title != 'undefined' ? title+'' : 'PHNTM WebUI' %></title>
+		<meta name="description" content="" />
+		<meta name="author" content="" />
+		<meta name="viewport" content="" />
+		<script type="text/javascript">
+			var exports = {};
+		</script>
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, maximum-scale=1"
+		/>
 
-    <link rel="icon" type="image/png" href="/static/favicons/favicon-yellow-16x16.png">
-    <link rel="stylesheet" href="/static/normalize.css"/>
-    <link rel="stylesheet" href="/static/styles.css"/>
+		<link
+			rel="icon"
+			type="image/png"
+			href="/static/favicons/favicon-yellow-16x16.png"
+		/>
+		<link rel="stylesheet" href="/static/normalize.css" />
+		<link rel="stylesheet" href="/static/styles.css" />
 
-    <script type="importmap">
-        {
-          "imports": {
-            "three":           "/static/three/three.module.js",
-            "urdf-loader":     "/static/urdf-loader/URDFLoader.js",
-            "three/examples/":  "/static/three/examples/",
-            "orbit-controls":  "/static/three/examples/jsm/controls/OrbitControls.js",
-            "css-2d-renderer": "/static/three/examples/jsm/renderers/CSS2DRenderer.js",
-            "stl-loader":      "/static/three/examples/jsm/loaders/STLLoader.js",
-            "collada-loader":  "/static/three/examples/jsm/loaders/ColladaLoader.js"
-          }
-        }
-    </script>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "/static/three/three.module.js",
+					"urdf-loader": "/static/urdf-loader/URDFLoader.js",
+					"three/examples/": "/static/three/examples/",
+					"orbit-controls": "/static/three/examples/jsm/controls/OrbitControls.js",
+					"css-2d-renderer": "/static/three/examples/jsm/renderers/CSS2DRenderer.js",
+					"stl-loader": "/static/three/examples/jsm/loaders/STLLoader.js",
+					"collada-loader": "/static/three/examples/jsm/loaders/ColladaLoader.js"
+				}
+			}
+		</script>
 
-    <script src="/static/lib/jquery-3.7.0.min.js"></script>
+		<script src="/static/lib/jquery-3.7.0.min.js"></script>
 
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-    <script src="/static/lib/jquery.ui.touch-punch.min.js"></script>
+		<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+		<link
+			rel="stylesheet"
+			href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"
+		/>
+		<script src="/static/lib/jquery.ui.touch-punch.min.js"></script>
 
-    <script src="/static/socket.io/socket.io.min.js"></script>
+		<script src="/static/socket.io/socket.io.min.js"></script>
 
-    <script src="/static/lib/linkify.min.js"></script>
-    <script src="/static/lib/linkify-string.min.js"></script>
-    <script src="/static/lib/linkify-html.min.js"></script>
-    <script src="/static/lib/rosmsg2-serialization.browserify.js"></script>
-    <script src="/static/lib/xml-formatter-singleton.js"></script>
+		<script src="/static/lib/linkify.min.js"></script>
+		<script src="/static/lib/linkify-string.min.js"></script>
+		<script src="/static/lib/linkify-html.min.js"></script>
+		<script src="/static/lib/rosmsg2-serialization.browserify.js"></script>
+		<script src="/static/lib/xml-formatter-singleton.js"></script>
 
-    <script src="/static/lib/d3.v4.js"></script>
+		<script src="/static/lib/d3.v4.js"></script>
 
-    <link rel="stylesheet" href="/static/gridstack/gridstack.min.css"/>
-    <script src="/static/gridstack/gridstack-all.js"></script>
+		<link rel="stylesheet" href="/static/gridstack/gridstack.min.css" />
+		<script src="/static/gridstack/gridstack-all.js"></script>
 
-    <%- analytics_code %>
-
-</head>
-<body>
-
-<script type="text/javascript">
-    const supportsImportMaps = HTMLScriptElement.supports && HTMLScriptElement.supports('importmap');
-    if (!supportsImportMaps) {
-        const message = document.createElement('div');
-        message.textContent = 'Your browser is very old and does not support import maps. Please use a modern browser for the best experience.';
-        message.style.cssText = 'background: red; color: white; padding: 20px; text-align: center; position: relative; z-index: 1000';
-        document.body.insertAdjacentElement('afterbegin', message);
-    }
-</script>
+		<%- extra_head_code %>
+	</head>
+	<body>
+		<script type="text/javascript">
+			const supportsImportMaps =
+				HTMLScriptElement.supports && HTMLScriptElement.supports("importmap");
+			if (!supportsImportMaps) {
+				const message = document.createElement("div");
+				message.textContent =
+					"Your browser is very old and does not support import maps. Please use a modern browser for the best experience.";
+				message.style.cssText =
+					"background: red; color: white; padding: 20px; text-align: center; position: relative; z-index: 1000";
+				document.body.insertAdjacentElement("afterbegin", message);
+			}
+		</script>
+	</body>
+</html>

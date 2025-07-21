@@ -1,11 +1,9 @@
 import path from "node:path";
 
-import axios, { AxiosResponse, AxiosError } from "axios";
-import express from "express";
+import express, { type Express, type Request, type Response } from "express";
 import ejs from "ejs";
 
-import type { Debugger } from "./lib/debugger";
-import type { BridgeUiConfig } from "./config";
+import type { BridgeRobotUiConfig, BridgeUiConfig } from "./config";
 
 export function printStartupMessage(
 	{ uiVersion }: { uiVersion: string },
@@ -23,9 +21,6 @@ export function printStartupMessage(
 				: `:${config.port}`
 		}${config.path}__ID__`.green,
 	);
-	console.log((" Bridge Locate URL: " + config.bridgeLocateUrl + "").green);
-	console.log((" App ID: " + config.appId + "").green);
-	console.log((" App Key: " + config.appKey + "").green);
 	console.log((" UI version: " + uiVersion).green);
 	console.log(" ".green);
 	console.log(
@@ -33,164 +28,61 @@ export function printStartupMessage(
 	);
 }
 
-export function createWebUIServerExpressApp(
-	{ $d, uiVersion }: { $d: Debugger; uiVersion: string },
-	config: BridgeUiConfig,
-	webExpressApp: express.Express,
-) {
-	webExpressApp.engine(".html", ejs.renderFile);
-	webExpressApp.set("views", path.join(__dirname, "../src/views"));
-	webExpressApp.set("view engine", "html");
-	webExpressApp.use("/static/", express.static("static/"));
-	webExpressApp.use(
-		"/static/socket.io/",
-		express.static("node_modules/socket.io-client/dist/"),
-	);
+export function registerStaticRoutes(app: Express) {
+	app.use("/static/", express.static("static/"));
+	app.use("/static/socket.io/", express.static("node_modules/socket.io-client/dist/"));
 
-	webExpressApp.use(
-		"/static/gridstack/",
-		express.static("node_modules/gridstack/dist/"),
-	);
+	app.use("/static/gridstack/", express.static("node_modules/gridstack/dist/"));
 
-	webExpressApp.use("/static/three/", express.static("node_modules/three/build/"));
-	webExpressApp.use(
-		"/static/three/examples/",
-		express.static("node_modules/three/examples/"),
-	);
-	webExpressApp.use(
-		"/static/urdf-loader/",
-		express.static("node_modules/urdf-loader/src/"),
-	);
+	app.use("/static/three/", express.static("node_modules/three/build/"));
+	app.use("/static/three/examples/", express.static("node_modules/three/examples/"));
+	app.use("/static/urdf-loader/", express.static("node_modules/urdf-loader/src/"));
 
-	webExpressApp.use(
-		"/static/canvasjs-charts/",
-		express.static("node_modules/@canvasjs/charts"),
-	);
-	webExpressApp.use(
-		"/static/touch-gamepad/",
-		express.static("node_modules/@rbuljan/gamepad/"),
-	);
-	webExpressApp.get("/favicon.ico", (req: express.Request, res: express.Response) => {
+	app.use("/static/canvasjs-charts/", express.static("node_modules/@canvasjs/charts"));
+	app.use("/static/touch-gamepad/", express.static("node_modules/@rbuljan/gamepad/"));
+	app.get("/favicon.ico", (req: express.Request, res: Response) => {
 		res.redirect("/static/favicons/favicon-yellow-16x16.png");
 	});
+}
 
-	// temporarily forked bcs of this: https://github.com/gridstack/gridstack.js/issues/2491
+export function registerViewEngine(app: Express) {
+	app.engine(".html", ejs.renderFile);
+	app.set("views", path.join(__dirname, "../src/views"));
+	app.set("view engine", "html");
+}
 
-	webExpressApp.get("/", async function (req: express.Request, res: express.Response) {
-		// let ip:string = (req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string;
-
+export function registerDummyRootRoute(app: Express) {
+	app.get("/", async function (req: Request, res: Response) {
 		res.setHeader("Content-Type", "text/html; charset=utf-8");
 		res.send("Ohi, this is Bridge UI server");
 	});
+}
 
-	webExpressApp.get(
-		config.path + ":ID",
-		async function (req: express.Request, res: express.Response) {
-			res.setHeader("Content-Type", "text/html; charset=utf-8");
+interface RegisterRobotUiParams extends BridgeRobotUiConfig {
+	uiVersion: string;
+	path: string;
+}
 
-			// query the Bridge Server server (closest) for the registered
-			// instance of this robot
-			let idRobot: string = req.params.ID;
-			axios
-				.post(
-					config.bridgeLocateUrl,
-					{
-						id_robot: idRobot,
-						app_id: config.appId,
-						app_key: config.appKey,
-					},
-					{ timeout: 5000 },
-				)
-				.then((response: AxiosResponse) => {
-					if (response.status != 200) {
-						$d.err(
-							"Locate returned code " +
-								response.status +
-								" for " +
-								idRobot +
-								" (" +
-								config.bridgeLocateUrl +
-								")",
-						);
-						res.send(
-							"Error locating robot on Bridge Server, Web UI credentials misconfigured (err: " +
-								response.status +
-								")",
-						);
-						return;
-					}
-					if (response.data["id_robot"] != idRobot) {
-						$d.err(
-							"Locate returned code wrong robot id for " + idRobot + ":",
-							response.data,
-						);
-						res.send("Error locating robot on Bridge Server");
-						return;
-					}
-					let robot_bridge_sever: string =
-						response.data["bridge_server"] + ":" + config.bridgeSocketPort;
-					let robot_bridge_files_url: string =
-						response.data["bridge_server"] +
-						":" +
-						config.bridgeFilesPort +
-						"/%SECRET%/%ROBOT_ID%/%URL%";
-					res.render("robot_ui", {
-						id_robot: req.params.ID,
-						bridge_socket_url: robot_bridge_sever, //
-						bridge_files_url: robot_bridge_files_url,
-						app_id: config.appId,
-						analytics_code: config.analyticsCode
-							? config.analyticsCode.join("\n")
-							: "",
-						ui_git_version: uiVersion,
-					});
-				})
-				.catch((error: AxiosError) => {
-					if (error.code === "ECONNABORTED") {
-						$d.err(
-							"Locating request timed out for " +
-								idRobot +
-								" (" +
-								config.bridgeLocateUrl +
-								")",
-						);
-						res.send("Timed out locating robot on Bridge Server");
-					} else if (error.code === "ECONNREFUSED") {
-						$d.err(
-							"Locating request refused for " +
-								idRobot +
-								" (" +
-								config.bridgeLocateUrl +
-								")",
-						);
-						res.send("Error connecing to Bridge Server, connection refused");
-					} else if (error.status == 404) {
-						$d.err(
-							"Locate returned code 404 for " +
-								idRobot +
-								" (" +
-								config.bridgeLocateUrl +
-								")",
-						);
-						res.send("Robot not found on Bridge Server");
-					} else {
-						$d.err(
-							"Error locating robot " +
-								idRobot +
-								" at " +
-								config.bridgeLocateUrl +
-								":",
-							error.message,
-						);
-						res.send(
-							"Error locating robot on Bridge Server, Web UI seems misconfigured (err: " +
-								error.code +
-								")",
-						);
-					}
-				});
-		},
+export function registerRobotUiRoute(app: Express, params: RegisterRobotUiParams) {
+	app.get(params.path + ":ID", (req: Request, res: Response) =>
+		renderRobotUi(res, {
+			idRobot: req.params.ID,
+			...params,
+		}),
 	);
+}
 
-	return webExpressApp;
+interface RenderRobotUiParams extends BridgeRobotUiConfig {
+	uiVersion: string;
+	idRobot: string;
+}
+
+export function renderRobotUi(res: Response, params: RenderRobotUiParams) {
+	res.render("robot_ui", {
+		id_robot: params.idRobot,
+		bridge_socket_url: params.bridgeSocketUrl,
+		bridge_files_url: params.bridgeFilesUrl,
+		extra_head_code: params.extraHeadCode.join("\n"),
+		ui_git_version: params.uiVersion,
+	});
 }

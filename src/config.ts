@@ -14,12 +14,9 @@ const envConfigSchema = z
 		UI_HOST: z.string(),
 		UI_PORT: z.coerce.number(),
 		UI_PATH: z.string(),
-		BRIDGE_LOCATE_URL: z.string().url(),
-		BRIDGE_SOCKET_PORT: z.coerce.number(),
-		BRIDGE_FILES_PORT: z.coerce.number().positive().int(),
-		APP_ID: z.string(),
-		APP_KEY: z.string(),
-		ANALYTICS_CODE: z.array(z.string()),
+		BRIDGE_SOCKET_URL: z.string().url(),
+		BRIDGE_FILES_URL: z.string().url(),
+		EXTRA_HEAD_CODE: z.array(z.string()),
 	})
 	.partial();
 
@@ -31,20 +28,33 @@ const fullConfigSchema = z.object({
 	port: z.number().positive().int(),
 	host: z.string().default("unknown"),
 	path: z.string().default("/"),
-	bridgeLocateUrl: z.string().url(),
-	bridgeSocketPort: z.number().positive().int().default(1337),
-	bridgeFilesPort: z.number().positive().int().default(1338),
-	appId: z.string(),
-	appKey: z.string(),
-	analyticsCode: z.array(z.string()).default([]),
+	bridgeSocketUrl: z.string().url(),
+	bridgeFilesUrl: z.string().url(),
+	extraHeadCode: z.array(z.string()).default([]),
 });
 
-export async function getConfig() {
-	let configFname = process.env.CONFIG_FILE ?? `${__dirname}/../config.jsonc`;
+export interface BridgeRobotUiConfig {
+	bridgeSocketUrl: string;
+	bridgeFilesUrl: string;
+	extraHeadCode: string[];
+}
+
+export interface BridgeUiConfig extends BridgeRobotUiConfig {
+	path: string;
+	name: string;
+	https: boolean;
+	port: number;
+	host: string;
+	ssl?: { private: string; public: string } | undefined;
+}
+
+export async function getConfig(
+	configFilePath = process.env.CONFIG_FILE ?? `${__dirname}/../config.jsonc`,
+): Promise<BridgeUiConfig> {
 	let fileConfig: unknown = {};
-	if (fs.existsSync(configFname)) {
-		console.log("Loading config from " + configFname);
-		fileConfig = await import(configFname);
+	if (fs.existsSync(configFilePath)) {
+		console.log("Loading config from " + configFilePath);
+		fileConfig = await import(configFilePath);
 	}
 
 	const env = envConfigSchema.parse(process.env);
@@ -53,23 +63,16 @@ export async function getConfig() {
 		...(env.UI_HOST !== undefined && { host: env.UI_HOST }),
 		...(env.UI_PORT !== undefined && { port: env.UI_PORT }),
 		...(env.UI_PATH !== undefined && { path: env.UI_PATH }),
-		...(env.BRIDGE_LOCATE_URL !== undefined && {
-			bridgeLocateUrl: env.BRIDGE_LOCATE_URL,
+		...(env.BRIDGE_SOCKET_URL !== undefined && {
+			bridgeSocketUrl: env.BRIDGE_SOCKET_URL,
 		}),
-		...(env.BRIDGE_SOCKET_PORT !== undefined && {
-			bridgeSocketPort: env.BRIDGE_SOCKET_PORT,
+		...(env.BRIDGE_FILES_URL !== undefined && {
+			bridgeFilesUrl: env.BRIDGE_FILES_URL,
 		}),
-		...(env.BRIDGE_FILES_PORT !== undefined && {
-			bridgeFilesPort: env.BRIDGE_FILES_PORT,
-		}),
-		...(env.APP_ID !== undefined && { appId: env.APP_ID }),
-		...(env.APP_KEY !== undefined && { appKey: env.APP_KEY }),
-		...(env.ANALYTICS_CODE !== undefined && {
-			analyticsCode: env.ANALYTICS_CODE,
+		...(env.EXTRA_HEAD_CODE !== undefined && {
+			extraHeadCode: env.EXTRA_HEAD_CODE,
 		}),
 	};
 
 	return fullConfigSchema.parse(Object.assign({}, fileConfig, envConfigRenamed));
 }
-
-export type BridgeUiConfig = Awaited<ReturnType<typeof getConfig>>;

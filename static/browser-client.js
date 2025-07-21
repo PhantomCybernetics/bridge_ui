@@ -141,11 +141,6 @@ export class PhntmBridgeClient extends EventTarget {
 			console.error("Missing opts.id_robot");
 			return false;
 		}
-		this.app_id = opts.app_id;
-		if (!this.app_id) {
-			console.error("Missing opts.app_id");
-			return false;
-		}
 		this.session = null;
 
 		//defaults to phntm bridge service
@@ -180,7 +175,6 @@ export class PhntmBridgeClient extends EventTarget {
 		let that = this;
 
 		this.socket_auth = {
-			id_app: this.app_id,
 			id_instance: null, // stored for reconnects when known
 		};
 

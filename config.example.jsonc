@@ -9,17 +9,9 @@
 	"host": "bridge.example.com", // Only informational, included in startup logs
 	"path": "/", // base address of the UI (ID_ROBOT will be appended)
 
-	// address where robot's Bridge Server instance will be requested
-	"bridgeLocateUrl": "https://register.phntm.io/locate",
-
-	"bridgeSocketPort": 1337, // Bridge Server port for Socket.io
-	"bridgeFilesPort": 1338, // Bridge Server port for file requests
+	"bridgeSocketUrl": "https://bridge.example.com:1337", // Bridge Server Socket.io host and port
+	"bridgeFilesUrl": "https://bridge.example.com:1338", // Bridge Server host and port for file requests
 
 	// app credentials generated upon registration on Bridge Server
-	"appId": "APP_ID",
-	"appKey": "APP_KEY",
 	"name": "Phntm Bridge Web UI",
-
-	// lines of an analytics tracker code to be appended to HTML
-	"analyticsCode": [],
 }
